@@ -9,23 +9,5 @@ services:
       - "8000:8000"
     volumes:
       - ./logs:/app/logs
-  wg-easy:
-    image: ghcr.io/wg-easy/wg-easy
-    container_name: wg-easy
-    environment:
-      - LANG=de
-      - WG_HOST=
-      - PASSWORD=
-    volumes:
-      - ~/.wg-easy:/etc/wireguard
-    ports:
-      - "51820:51820/udp"
-      - "51821:51821/tcp"
-    cap_add:
-      - NET_ADMIN
-      - SYS_MODULE
-    sysctls:
-      - net.ipv4.conf.all.src_valid_mark=1
-      - net.ipv4.ip_forward=1
-    restart: unless-stopped
+      - ./public/:/app/public
 
