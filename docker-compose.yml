@@ -9,34 +9,23 @@ services:
       - "8000:8000"
     volumes:
       - ./logs:/app/logs
-    networks:
-      - my_network
-
   wg-easy:
-    container_name: wg-easy
     image: ghcr.io/wg-easy/wg-easy
-
+    container_name: wg-easy
     environment:
-      - PASSWORD=<PASSWORD>
-      - WG_HOST=<IPADDRESS>
-
+      - LANG=de
+      - WG_HOST=
+      - PASSWORD=
     volumes:
-      - ./config:/etc/wireguard
-      - /lib/modules:/lib/modules
+      - ~/.wg-easy:/etc/wireguard
     ports:
       - "51820:51820/udp"
       - "51821:51821/tcp"
-    restart: unless-stopped
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
     sysctls:
-      - net.ipv4.ip_forward=1
       - net.ipv4.conf.all.src_valid_mark=1
-    networks:
-      - my_network
-  
+      - net.ipv4.ip_forward=1
+    restart: unless-stopped
 
-networks:
-  my_network:
-    driver: bridge
