@@ -1,23 +1,23 @@
-var username
+
+var username = localStorage.getItem('username')
 const input = document.querySelector('#input')
 const messages = document.querySelector('#messages')
 const send = document.querySelector('#send')
 
 $(document).ready(function () {
-	username = localStorage.getItem('username')
-	if (username) {
+	if (this.username) {
 		$("#userContent").hide();
 	}else{
 	$("#chatContent").hide();
 	$('#usernameForm').submit(function (e) {
-		e.preventDefault(); // Prevent default form submission
-	    username = $('#usernameInput').val(); // Get the entered username
-		if (username.trim() !== '') { // Check if username is not empty
+		e.preventDefault(); 
+	    username = $('#usernameInput').val(); 
+		if (username.trim() !== '') { 
 			localStorage.setItem('username',username);
 			$("#chatContent").show();
 			$("#userContent").hide();
 		} else {
-			alert('Please enter a username.'); // Show an alert if username is empty
+			alert('Please enter a username.'); 
 		}
 	});
 	}
@@ -43,7 +43,6 @@ send.onclick = () => {
 		content: input.value,
 		avatar: localStorage.getItem('selectedAvatar')
 	}
-	console.log(message);
     ws.send(JSON.stringify(message));
     input.value = "";
 };
