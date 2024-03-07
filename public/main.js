@@ -7,13 +7,14 @@ function n_p() {
     var n,p;
 
     do {
-        n = Math.floor(Math.random()* 10**77);
-        p = Math.floor(Math.random()* 10**77);
+        n = Math.floor(Math.random()* 10);
+        p = Math.floor(Math.random()* 10);
        var isPrime = this.isPrime([n,p]);
 
     } while (!isPrime);
+    
 
-    return "n: "+n+" p: "+p;
+    return "n: "+n*10**77+" p: "+p*10**77;
   }
 
   function isPrime(array) {
