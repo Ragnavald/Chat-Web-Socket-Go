@@ -3,10 +3,35 @@ const input = document.querySelector('#input')
 const messages = document.querySelector('#messages')
 const send = document.querySelector('#send')
 
-function numeroPrimo() {
-    num = Math.random() * Math.floor(Math.random());
-    console.log(num);
+function n_p() {
+    var n,p;
+
+    do {
+        n = Math.floor(Math.random()* 10**77);
+        p = Math.floor(Math.random()* 10**77);
+       var isPrime = this.isPrime([n,p]);
+
+    } while (!isPrime);
+
+    return "n: "+n+" p: "+p;
   }
+
+  function isPrime(array) {
+
+    for (let num of array) { 
+        var result = 0;
+        for(let i = 2; i < 10; i++){
+            if(num % i === 0){
+                result ++;
+            }
+        }
+        if (result > 1) {
+            return false;
+        }
+    }
+    return true;
+}
+
 
 $(document).ready(function () {
      username = localStorage.getItem('username');
@@ -66,7 +91,7 @@ window.addEventListener('load', () => {
 
 function insertMessage(messageObj, isOut) {
 
-    this.numeroPrimo();
+    console.log(this.n_p());
     // Create a new list item element
     const listItem = document.createElement('li');
 
