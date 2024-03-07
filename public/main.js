@@ -1,11 +1,16 @@
-
-var username = localStorage.getItem('username')
+var username
 const input = document.querySelector('#input')
 const messages = document.querySelector('#messages')
 const send = document.querySelector('#send')
 
+function numeroPrimo() {
+    num = Math.random() * Math.floor(Math.random());
+    console.log(num);
+  }
+
 $(document).ready(function () {
-	if (this.username) {
+     username = localStorage.getItem('username');
+	if (username) {
 		$("#userContent").hide();
 	}else{
 	$("#chatContent").hide();
@@ -60,6 +65,8 @@ window.addEventListener('load', () => {
 });
 
 function insertMessage(messageObj, isOut) {
+
+    this.numeroPrimo();
     // Create a new list item element
     const listItem = document.createElement('li');
 
