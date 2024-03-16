@@ -1,5 +1,7 @@
-version: '3.3'
-
+version: '3'
+volumes:
+  etc_wireguard:
+  
 services:
   go:
     build:
