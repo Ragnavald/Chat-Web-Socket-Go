@@ -19,7 +19,7 @@ function n_p() {
 
   function isPrime(array) {
 
-    for (let num of array) { 
+  /*   for (let num of array) { 
         var result = 0;
         for(let i = 2; i < 10; i++){
             if(num % i === 0){
@@ -29,7 +29,7 @@ function n_p() {
         if (result > 1) {
             return false;
         }
-    }
+    } */
     return true;
 }
 
