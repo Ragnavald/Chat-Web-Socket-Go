@@ -79,6 +79,7 @@ function encrypt(m, publicKey) {
 function decrypt(c, privateKey) {
     var result = []
     var resultHex = []
+    c = convertArrayStringToInt(c)
     for(let i=0; i < c.length; i++){
         result[i] = modPow(c[i], BigInt(privateKey.d), BigInt(privateKey.n))
     }
@@ -89,6 +90,15 @@ function decrypt(c, privateKey) {
 
     return asciiToText(resultHex)
     
+}
+
+function convertArrayStringToInt(arr) {
+    var numberArray = [];
+
+    for (var i = 0; i < arr.length; i++){
+        numberArray.push(BigInt(arr[i]));
+    }
+    return numberArray
 }
 
 function hexToInt(hex){
