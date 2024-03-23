@@ -7,6 +7,10 @@ const avatarImages = document.querySelectorAll('.avatar-image');
 const ws = new WebSocket('ws://localhost:8000/ws');
 import {keysGenerate, encrypt, decrypt} from "./RSA.js"
 
+
+BigInt.prototype.toJSON = function() { return this.toString() }
+
+
 //CHAVE PRIVADA EM LOCALSTORAGE
 
 /* 
@@ -48,9 +52,8 @@ ws.onmessage = function (msg) {
     msg = JSON.parse(msg.data)
     if (msg.event == "message"){
         
-        if (username == msg.data.username) {
-            insertMessage(msg.data, true)
-        }else{
+        if (username != msg.data.username) {
+            msg.data.content =  decrypt(msg.data.content,JSON.parse(localStorage.getItem('privateKey')))
             insertMessage(msg.data, false)
         }
     }
@@ -91,10 +94,14 @@ return hora + ':' + minuto + ':' + segundo;
 send.onclick = () => {
     const message = {
 		username: username,
-		content: input.value /* encrypt(input.value,localStorage.getItem('targetKey')) */, //CRIPTOGRAFAR
+		content: input.value,
 		avatar: localStorage.getItem('selectedAvatar'),
         date: getCurrentDate()
 	}
+    insertMessage(message, true)    
+
+    //CRIPTOGRAFIA
+    message.content =  encrypt(message.content,JSON.parse(localStorage.getItem('targetKey')));
     ws.send(JSON.stringify({event: 'message', data: message }));
     input.value = "";
 };
