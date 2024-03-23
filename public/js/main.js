@@ -2,49 +2,35 @@ var username
 const input = document.querySelector('#input')
 const messages = document.querySelector('#messages')
 const send = document.querySelector('#send')
+// Adicionar um evento de clique a todas as imagens de avatar
+const avatarImages = document.querySelectorAll('.avatar-image');
+const ws = new WebSocket('ws://localhost:8000/ws');
+import {keysGenerate, encrypt, decrypt} from "./RSA.js"
 
-function n_p() {
-    var n,p;
+//CHAVE PRIVADA EM LOCALSTORAGE
 
-    do {
-        n = Math.floor(Math.random()* 10);
-        p = Math.floor(Math.random()* 10);
-       var isPrime = this.isPrime([n,p]);
-
-    } while (!isPrime);
-    
-
-    return "n: "+n*10**77+" p: "+p*10**77;
-  }
-
-  function isPrime(array) {
-
-  /*   for (let num of array) { 
-        var result = 0;
-        for(let i = 2; i < 10; i++){
-            if(num % i === 0){
-                result ++;
-            }
-        }
-        if (result > 1) {
-            return false;
-        }
-    } */
-    return true;
-}
+/* 
+const m = decrypt(c,keys.privateKey) */
 
 
 $(document).ready(function () {
-     username = localStorage.getItem('username');
+    username = localStorage.getItem('username');
 	if (username) {
 		$("#userContent").hide();
 	}else{
+        const keys = keysGenerate();
 	$("#chatContent").hide();
 	$('#usernameForm').submit(function (e) {
 		e.preventDefault(); 
 	    username = $('#usernameInput').val(); 
 		if (username.trim() !== '') { 
 			localStorage.setItem('username',username);
+            localStorage.setItem('privateKey',JSON.stringify(keys.privateKey))
+            localStorage.setItem('publicKey',JSON.stringify(keys.publicKey))
+
+            ws.send(JSON.stringify({event:'newkey', data:{'publicKey': keys.publicKey, 'username': username}}))
+
+
 			$("#chatContent").show();
 			$("#userContent").hide();
 		} else {
@@ -55,26 +41,61 @@ $(document).ready(function () {
 
 });
 
-
-
-const ws = new WebSocket('ws://127.0.0.1:8000/ws');
-
 ws.onmessage = function (msg) {
-	
-	if (username == JSON.parse(msg.data).username) {
-		insertMessage(JSON.parse(msg.data), true)
-	}else{
-		insertMessage(JSON.parse(msg.data), false)
-	}
+
+    //DESCRIPTOGRAFAR
+
+    msg = JSON.parse(msg.data)
+    if (msg.event == "message"){
+        
+        if (username == msg.data.username) {
+            insertMessage(msg.data, true)
+        }else{
+            insertMessage(msg.data, false)
+        }
+    }
+    
+    else if (username != msg.data.username){ //newkey
+        localStorage.setItem('targetKey', JSON.stringify(msg.data.publicKey))
+        ws.send(JSON.stringify({event:'newkey', data:{'publicKey': keys.publicKey, 'username': username}}))
+        return
+    }
+    //QUANDO RECEBER A DELE ENVIAR A MINHA
 };
+
+
+function acessarChave(key){
+    return localStorage.getItem('targetKey')
+}
+
+function getCurrentDate(){
+    // Criar um novo objeto de data
+var dataAtual = new Date();
+
+// Obtendo a data
+var dia = dataAtual.getDate();
+var mes = dataAtual.getMonth() + 1; // Os meses são baseados em zero, então adicionamos 1
+var ano = dataAtual.getFullYear();
+
+// Obtendo a hora
+var hora = dataAtual.getHours();
+var minuto = dataAtual.getMinutes();
+var segundo = dataAtual.getSeconds();
+
+// Formatar a data e hora como uma string
+return hora + ':' + minuto + ':' + segundo;
+
+}
+
 
 send.onclick = () => {
     const message = {
-		username: this.username,
-		content: input.value,
-		avatar: localStorage.getItem('selectedAvatar')
+		username: username,
+		content: input.value /* encrypt(input.value,localStorage.getItem('targetKey')) */, //CRIPTOGRAFAR
+		avatar: localStorage.getItem('selectedAvatar'),
+        date: getCurrentDate()
 	}
-    ws.send(JSON.stringify(message));
+    ws.send(JSON.stringify({event: 'message', data: message }));
     input.value = "";
 };
 
@@ -83,6 +104,7 @@ send.onclick = () => {
  * @param {Message that will be displayed in the UI} messageObj
  */
 
+
 window.addEventListener('load', () => {
     const cachedMessages = localStorage.getItem('chatMessages');
     if (cachedMessages) {
@@ -90,16 +112,21 @@ window.addEventListener('load', () => {
     }
 });
 
+//Para cada imagem adicione o evento handleAvatarClick
+avatarImages.forEach(image => {
+    image.addEventListener('click', handleAvatarClick);
+});
+
+
 function insertMessage(messageObj, isOut) {
 
-    console.log(this.n_p());
     // Create a new list item element
     const listItem = document.createElement('li');
 
 	if (isOut == true) {
 		listItem.setAttribute('class', 'out');
 	}else{
-    listItem.setAttribute('class', 'in'); // Assuming 'in' is the class for incoming messages
+        listItem.setAttribute('class', 'in'); // Assuming 'in' is the class for incoming messages
 	}
 
     // Create the div for the chat body
@@ -125,10 +152,16 @@ function insertMessage(messageObj, isOut) {
     // Create the paragraph for the message content
     const paragraph = document.createElement('p');
     paragraph.textContent = messageObj.content;
+
+    // Create the div date and hour
+    const date = document.createElement('div');
+    date.setAttribute('class', 'hour-format')
+    date.textContent = messageObj.date;
     
     // Append heading and paragraph to the chat message div
     chatMessageDiv.appendChild(heading);
     chatMessageDiv.appendChild(paragraph);
+    chatMessageDiv.appendChild(date);
     
     // Append chat message div to chat body div
     chatBodyDiv.appendChild(chatMessageDiv);
@@ -164,8 +197,3 @@ function handleAvatarClick(event) {
     localStorage.setItem('selectedAvatar', selectedAvatar);
 }
 
-// Adicionar um evento de clique a todas as imagens de avatar
-const avatarImages = document.querySelectorAll('.avatar-image');
-avatarImages.forEach(image => {
-    image.addEventListener('click', handleAvatarClick);
-});

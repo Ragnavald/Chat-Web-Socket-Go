@@ -4,6 +4,8 @@ body{
 .chat-list {
     padding: 0;
     font-size: .8rem;
+    overflow: auto;
+    height: 800px;
 }
 
 .chat-list li {
@@ -37,13 +39,13 @@ body{
 .chat-list .chat-message:before {
     content: "";
     position: absolute;
-    top: 15px;
+    top: 20px;
     width: 0;
     height: 0;
 }
 
 .chat-list .chat-message h5 {
-    margin: 0 0 5px 0;
+    margin: 0 0 10px 0;
     font-weight: 600;
     line-height: 100%;
     font-size: .9rem;
@@ -51,14 +53,16 @@ body{
 
 .chat-list .chat-message p {
     line-height: 18px;
-    margin: 0;
+    margin: 0 0 10px 0;
     padding: 0;
+    font-size: 1.3em;
 }
 
 .chat-list .chat-body {
     margin-left: 20px;
     float: left;
     width: 70%;
+    
 }
 
 .chat-list .in .chat-message:before {
@@ -75,6 +79,7 @@ body{
     float: right;
     margin-right: 20px;
     text-align: right;
+    
 }
 
 .chat-list .out .chat-message {
@@ -88,6 +93,7 @@ body{
 }
 
 .card .card-header:first-child {
+    
     -webkit-border-radius: 0.3rem 0.3rem 0 0;
     -moz-border-radius: 0.3rem 0.3rem 0 0;
     border-radius: 0.3rem 0.3rem 0 0;
@@ -103,7 +109,8 @@ body{
 }
 
 .content{
-    margin-top:40px;    
+    margin-top:40px;
+    
 }
 
 .avatar-container {
@@ -120,4 +127,25 @@ body{
 /* Adicione um estilo para a imagem selecionada */
 .avatar-image.selected {
     border: 2px solid blue; /* Adicione a cor e largura da borda desejadas */
+}
+
+.hour-format{
+    font-size: 1em;
+    font-style: italic;
+}
+
+.sendBtn{
+    -webkit-border-radius: 50px;
+    -moz-border-radius: 50px;
+    border-radius: 20px;
+}
+.inputMsg{
+    -webkit-border-radius: 50px;
+    -moz-border-radius: 50px;
+    border-radius: 20px;
+    border-color: #17202b;
+
+}
+.card-body{
+    background-image: url("../Images/background.jpg");
 }
