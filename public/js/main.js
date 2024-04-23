@@ -5,7 +5,7 @@ const send = document.querySelector('#send')
 // Adicionar um evento de clique a todas as imagens de avatar
 const avatarImages = document.querySelectorAll('.avatar-image');
 const ws = new WebSocket('ws://localhost:8000/ws');
-import {keysGenerate, encrypt, decrypt} from "./RSA.js"
+import { do_genrsa, do_encrypt, do_decrypt } from "./RSA.js"
 import {generateRandomKey, decryptAES, encryptAES} from "./AES.js"
 
 //NECESSÁRIO PARA CONVERTER JSON {BIGINT} EM STRING 
@@ -13,11 +13,12 @@ BigInt.prototype.toJSON = function() { return this.toString() }
 
 
 $(document).ready(function () {
+
     username = localStorage.getItem('username');
 	if (username) {
 		$("#userContent").hide();
 	}else{
-        var keys = keysGenerate();
+        var keys = do_genrsa();
 	$("#chatContent").hide();
 	$('#usernameForm').submit(function (e) {
 		e.preventDefault(); 
@@ -45,7 +46,7 @@ ws.onmessage = function (msg) {
     if (msg.event == "message"){
 
         if (username != msg.data.username) {
-            const key = decrypt(msg.data.AesKey, JSON.parse(localStorage.getItem('privateKey')))
+            const key = do_decrypt(JSON.parse(localStorage.getItem('privateKey')),msg.data.AesKey)
             msg.data.content =  decryptAES(msg.data.content, key)
             insertMessage(msg.data, false)
         }
@@ -92,9 +93,8 @@ send.onclick = () => {
 
     //CRIPTOGRAFIA
     message.content =  encryptAES(message.content, message.AesKey)
-    message.AesKey = encrypt(message.AesKey,JSON.parse(localStorage.getItem('targetKey')));
+    message.AesKey = do_encrypt(JSON.parse(localStorage.getItem('targetKey')),message.AesKey);
 
-/*     message.content =  encrypt(message.content,JSON.parse(localStorage.getItem('targetKey'))); */
     ws.send(JSON.stringify({event: 'message', data: message }));
     input.value = "";
 };
