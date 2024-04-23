@@ -5,24 +5,20 @@ const send = document.querySelector('#send')
 // Adicionar um evento de clique a todas as imagens de avatar
 const avatarImages = document.querySelectorAll('.avatar-image');
 const ws = new WebSocket('ws://localhost:8000/ws');
-import {keysGenerate, encrypt, decrypt} from "./RSA.js"
+import { do_genrsa, do_encrypt, do_decrypt } from "./RSA.js"
+import {generateRandomKey, decryptAES, encryptAES} from "./AES.js"
 
-
+//NECESSÁRIO PARA CONVERTER JSON {BIGINT} EM STRING 
 BigInt.prototype.toJSON = function() { return this.toString() }
 
 
-//CHAVE PRIVADA EM LOCALSTORAGE
-
-/* 
-const m = decrypt(c,keys.privateKey) */
-
-
 $(document).ready(function () {
+
     username = localStorage.getItem('username');
 	if (username) {
 		$("#userContent").hide();
 	}else{
-        const keys = keysGenerate();
+        var keys = do_genrsa();
 	$("#chatContent").hide();
 	$('#usernameForm').submit(function (e) {
 		e.preventDefault(); 
@@ -46,14 +42,12 @@ $(document).ready(function () {
 });
 
 ws.onmessage = function (msg) {
-
-    //DESCRIPTOGRAFAR
-
     msg = JSON.parse(msg.data)
     if (msg.event == "message"){
-        
+
         if (username != msg.data.username) {
-            msg.data.content =  decrypt(msg.data.content,JSON.parse(localStorage.getItem('privateKey')))
+            const key = do_decrypt(JSON.parse(localStorage.getItem('privateKey')),msg.data.AesKey)
+            msg.data.content =  decryptAES(msg.data.content, key)
             insertMessage(msg.data, false)
         }
     }
@@ -66,10 +60,6 @@ ws.onmessage = function (msg) {
     //QUANDO RECEBER A DELE ENVIAR A MINHA
 };
 
-
-function acessarChave(key){
-    return localStorage.getItem('targetKey')
-}
 
 function getCurrentDate(){
     // Criar um novo objeto de data
@@ -96,12 +86,15 @@ send.onclick = () => {
 		username: username,
 		content: input.value,
 		avatar: localStorage.getItem('selectedAvatar'),
-        date: getCurrentDate()
+        date: getCurrentDate(),
+        AesKey: generateRandomKey(5)
 	}
     insertMessage(message, true)    
 
     //CRIPTOGRAFIA
-    message.content =  encrypt(message.content,JSON.parse(localStorage.getItem('targetKey')));
+    message.content =  encryptAES(message.content, message.AesKey)
+    message.AesKey = do_encrypt(JSON.parse(localStorage.getItem('targetKey')),message.AesKey);
+
     ws.send(JSON.stringify({event: 'message', data: message }));
     input.value = "";
 };
@@ -127,20 +120,17 @@ avatarImages.forEach(image => {
 
 function insertMessage(messageObj, isOut) {
 
-    // Create a new list item element
     const listItem = document.createElement('li');
 
 	if (isOut == true) {
 		listItem.setAttribute('class', 'out');
 	}else{
-        listItem.setAttribute('class', 'in'); // Assuming 'in' is the class for incoming messages
+        listItem.setAttribute('class', 'in');
 	}
 
-    // Create the div for the chat body
     const chatBodyDiv = document.createElement('div');
     chatBodyDiv.setAttribute('class', 'chat-body');
-    
-    // Create the div for the chat image
+
     const chatImgDiv = document.createElement('div');
     chatImgDiv.setAttribute('class', 'chat-img');
     const img = document.createElement('img');
@@ -148,42 +138,32 @@ function insertMessage(messageObj, isOut) {
     img.setAttribute('src', messageObj.avatar);
     chatImgDiv.appendChild(img);
     
-    // Create the div for the chat message
     const chatMessageDiv = document.createElement('div');
     chatMessageDiv.setAttribute('class', 'chat-message');
     
-    // Create the heading for the message
     const heading = document.createElement('h5');
     heading.textContent = messageObj.username;
     
-    // Create the paragraph for the message content
     const paragraph = document.createElement('p');
     paragraph.textContent = messageObj.content;
 
-    // Create the div date and hour
     const date = document.createElement('div');
     date.setAttribute('class', 'hour-format')
     date.textContent = messageObj.date;
-    
-    // Append heading and paragraph to the chat message div
+
     chatMessageDiv.appendChild(heading);
     chatMessageDiv.appendChild(paragraph);
     chatMessageDiv.appendChild(date);
     
-    // Append chat message div to chat body div
     chatBodyDiv.appendChild(chatMessageDiv);
     
-    // Append chat image div to the list item
     listItem.appendChild(chatImgDiv);
     
-    // Append chat body div to the list item
     listItem.appendChild(chatBodyDiv);
     
-    // Append the list item to the messages list
     const messages = document.getElementById('messages');
     messages.appendChild(listItem);
     
-    // Save messages to localStorage
     localStorage.setItem('chatMessages', messages.innerHTML);
 }
 

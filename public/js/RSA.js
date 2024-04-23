@@ -1,159 +1,59 @@
-import { millerRabinTest } from "./lib/miller-rabin.js";
-
-let PQ = [];
-
-
-function gerarPQ() {
-    while (PQ.length < 2) {
-        do {
-            let num = Math.floor(Math.random() * 7 ** 10);
-            if (num % 2 === 0) {
-                num++;
-            }
-            if (millerRabinTest(num, 10)) {
-                PQ.push(num);
-                break;
-            }
-        } while (true);
+class RSAKeyAttributes {
+    constructor(e, bits) {
+        var rsa = new RSAKey();
+        rsa.generate(parseInt(bits), e);
+        this.e = e;
+        this.n = linebrk(rsa.n.toString(16), 64);
+        this.d = linebrk(rsa.d.toString(16), 64);
+        this.p = linebrk(rsa.p.toString(16), 64);
+        this.q = linebrk(rsa.q.toString(16), 64);
+        this.dmp1 = linebrk(rsa.dmp1.toString(16), 64);
+        this.dmq1 = linebrk(rsa.dmq1.toString(16), 64);
+        this.coeff = linebrk(rsa.coeff.toString(16), 64);
     }
-    return PQ;
 }
 
-function calcularN() {
-    return PQ[0] * PQ[1];
-}
 
-function calcularZ() {
-    return (PQ[0] - 1) * (PQ[1] - 1);
-}
-
-function calcularE(z) {
-    let e;
-    do {
-        e = getRandomNumber(2, z);
-    } while (gcd(e, z) !== 1);
-    return e;
-}
-
-function getRandomNumber(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function gcd(a, b) {
-    if (b === 0) {
-        return a;
+function do_encrypt(publicKey, message) {
+    var rsa = new RSAKey();
+    rsa.setPublic(publicKey.n.toString(), publicKey.e.toString());
+    var res = rsa.encrypt(message);
+    if(res) {
+      return linebrk(res, 64);
     }
-    return gcd(b, a % b);
-}
+  }
 
-function extendedEuclideanAlgorithm(a, b) {
-    let [old_r, r] = [a, b];
-    let [old_s, s] = [1n, 0n];
-    let [old_t, t] = [0n, 1n];
-
-    while (r !== 0n) {
-        const quotient = old_r / r;
-        [old_r, r] = [r, old_r - quotient * r];
-        [old_s, s] = [s, old_s - quotient * s];
-        [old_t, t] = [t, old_t - quotient * t];
+  function do_decrypt(privateKey, message) {
+    var rsa = new RSAKey();
+    rsa.setPrivateEx(privateKey.n, '3', privateKey.d, privateKey.p,privateKey.q, privateKey.dmp1, privateKey.dmq1,privateKey.coeff);
+    if(message.length == 0) {
+      return;
     }
+    var res = rsa.decrypt(message);   
+    return res;
+  }
 
-    return [old_s, old_t];
-}
+function do_genrsa() {
+    var rsaKeyAttributes = new RSAKeyAttributes('3',1024);
 
-function calcularD(e, z) {
-    const [d, _] = extendedEuclideanAlgorithm(BigInt(e), BigInt(z));
-    return (d % BigInt(z) + BigInt(z)) % BigInt(z); // Garante que o resultado seja positivo
-}
-
-function encrypt(m, publicKey) {
-    var result = []
-    var arrMsg = textToAscii(m)
-    for(let i = 0; i < arrMsg.length; i++){
-        result[i] = modPow(BigInt(hexToInt(arrMsg[i])), BigInt(publicKey.e), BigInt(publicKey.n));
+    const publicKey = {
+        e: rsaKeyAttributes.e,
+        n: rsaKeyAttributes.n
     }
-    return result
-
-}
-
-function decrypt(c, privateKey) {
-    var result = []
-    var resultHex = []
-    c = convertArrayStringToInt(c)
-    for(let i=0; i < c.length; i++){
-        result[i] = modPow(c[i], BigInt(privateKey.d), BigInt(privateKey.n))
+    const privateKey = {
+        d: rsaKeyAttributes.d,
+        n: rsaKeyAttributes.n,
+        p: rsaKeyAttributes.p,
+        q: rsaKeyAttributes.q,
+        dmp1: rsaKeyAttributes.dmp1,
+        dmq1: rsaKeyAttributes.dmq1,
+        coeff: rsaKeyAttributes.coeff
     }
-
-    for(let i=0; i< result.length; i++){
-        resultHex[i] = intToHex(result[i])                                                                                                                                                         
-    }
-
-    return asciiToText(resultHex)
-    
-}
-
-function convertArrayStringToInt(arr) {
-    var numberArray = [];
-
-    for (var i = 0; i < arr.length; i++){
-        numberArray.push(BigInt(arr[i]));
-    }
-    return numberArray
-}
-
-function hexToInt(hex){
-    return parseInt(hex,16)
-}
-
-function intToHex(int){
-    return int.toString(16)
-}
-
-function modPow(base, exp, mod) {
-    let result = 1n;
-    base %= mod;
-    while (exp > 0n) {
-        if (exp % 2n === 1n) {
-            result = (result * base) % mod;
-        }
-        base = (base * base) % mod;
-        exp /= 2n;
-    }
-    return result;
-}
-
-function textToAscii(message){
-    var result = []
-
-    for (let index = 0; index < message.length; index++) {
-        result[index] = message.charCodeAt(index).toString(16)
-    }
-    return result
-}
-
-function asciiToText(codes){
-    var sentence = ""
-
-    for(let index = 0; index < codes.length; index++){
-        const codePoint = parseInt(codes[index],16)
-        sentence += String.fromCodePoint(codePoint)
-    }
-    return sentence
-}
-
-function keysGenerate(){
-    gerarPQ();
-    const n = calcularN();
-    const z = calcularZ();
-    const e = calcularE(z);
-    const d = Number(calcularD(e,z));
-    const publicKey = {e: e, n: n}
-    const privateKey = {d: d, n: n}
     const keys = {
         publicKey: publicKey,
         privateKey: privateKey
-    }
+    }   
     return keys 
-}
+  }
 
-export { keysGenerate, encrypt, decrypt };
+export { do_genrsa, do_encrypt, do_decrypt }
