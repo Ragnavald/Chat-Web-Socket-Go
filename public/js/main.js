@@ -6,7 +6,6 @@ const send = document.querySelector('#send')
 const avatarImages = document.querySelectorAll('.avatar-image');
 const ws = new WebSocket('ws://localhost:8000/ws');
 import { do_genrsa, do_encrypt, do_decrypt } from "./RSA.js"
-import {generateRandomKey, decryptAES, encryptAES} from "./AES.js"
 
 //NECESSÁRIO PARA CONVERTER JSON {BIGINT} EM STRING 
 BigInt.prototype.toJSON = function() { return this.toString() }
@@ -46,8 +45,7 @@ ws.onmessage = function (msg) {
     if (msg.event == "message"){
 
         if (username != msg.data.username) {
-            const key = do_decrypt(JSON.parse(localStorage.getItem('privateKey')),msg.data.AesKey)
-            msg.data.content =  decryptAES(msg.data.content, key)
+            msg.data.content =  do_decrypt(JSON.parse(localStorage.getItem('privateKey')), msg.data.content)
             insertMessage(msg.data, false)
         }
     }
@@ -87,14 +85,11 @@ send.onclick = () => {
 		content: input.value,
 		avatar: localStorage.getItem('selectedAvatar'),
         date: getCurrentDate(),
-        AesKey: generateRandomKey(5)
 	}
     insertMessage(message, true)    
 
     //CRIPTOGRAFIA
-    message.content =  encryptAES(message.content, message.AesKey)
-    message.AesKey = do_encrypt(JSON.parse(localStorage.getItem('targetKey')),message.AesKey);
-
+    message.content = do_encrypt(JSON.parse(localStorage.getItem('targetKey')),message.content);
     ws.send(JSON.stringify({event: 'message', data: message }));
     input.value = "";
 };
