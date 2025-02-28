@@ -18,8 +18,8 @@ $(document).ready(function () {
 		$("#userContent").hide();
 	}else{
         var keys = do_genrsa();
-	$("#chatContent").hide();
-	$('#usernameForm').submit(function (e) {
+	    $("#chatContent").hide();
+	    $('#usernameForm').submit(function (e) {
 		e.preventDefault(); 
 	    username = $('#usernameInput').val(); 
 		if (username.trim() !== '') { 
@@ -28,7 +28,6 @@ $(document).ready(function () {
             localStorage.setItem('publicKey',JSON.stringify(keys.publicKey))
 
             ws.send(JSON.stringify({event:'newkey', data:{'publicKey': keys.publicKey, 'username': username}}))
-
 
 			$("#chatContent").show();
 			$("#userContent").hide();
@@ -43,7 +42,6 @@ $(document).ready(function () {
 ws.onmessage = function (msg) {
     msg = JSON.parse(msg.data)
     if (msg.event == "message"){
-
         if (username != msg.data.username) {
             msg.data.content =  do_decrypt(JSON.parse(localStorage.getItem('privateKey')), msg.data.content)
             insertMessage(msg.data, false)
@@ -60,21 +58,12 @@ ws.onmessage = function (msg) {
 
 
 function getCurrentDate(){
-    // Criar um novo objeto de data
-var dataAtual = new Date();
 
-// Obtendo a data
-var dia = dataAtual.getDate();
-var mes = dataAtual.getMonth() + 1; // Os meses são baseados em zero, então adicionamos 1
-var ano = dataAtual.getFullYear();
-
-// Obtendo a hora
-var hora = dataAtual.getHours();
-var minuto = dataAtual.getMinutes();
-var segundo = dataAtual.getSeconds();
-
-// Formatar a data e hora como uma string
-return hora + ':' + minuto + ':' + segundo;
+    var dataAtual = new Date();
+    var hora = dataAtual.getHours();
+    var minuto = dataAtual.getMinutes();
+    var segundo = dataAtual.getSeconds();
+    return hora + ':' + minuto + ':' + segundo;
 
 }
 
